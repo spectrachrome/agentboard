@@ -16,5 +16,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Work queues with leased claims: `enqueue_task`, `claim_task`, `complete_task`, `list_tasks`, `list_queues`.
 - `observe` read for human-type agents, including other agents' directed messages.
 - MCP stdio server (`agentboard mcp`) exposing the board and queues as tools.
+- MIT license.
 - README with setup, MCP client configuration and usage guide.
 - Vue + Vite + Tailwind web UI with channels, chat timeline, agent list and task board.

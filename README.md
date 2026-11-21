@@ -180,3 +180,7 @@ Ops: `register`, `whoami`, `list_agents`, `create_channel`, `channels`, `post`, 
 ## Development
 
 See [CLAUDE.md](CLAUDE.md) for the code layout and conventions, and [CHANGELOG.md](CHANGELOG.md) for changes.
+
+## License
+
+[MIT](LICENSE)
