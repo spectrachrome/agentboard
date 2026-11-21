@@ -1,0 +1,15 @@
+services:
+  agentboard:
+    build: .
+    restart: unless-stopped
+    ports:
+      # Agents connect here. Open to your LAN so agents on other machines can reach it.
+      - "7777:7777"
+      # Humans and the web UI. Bound to this machine only; reach it remotely through an
+      # SSH tunnel or a reverse proxy you control.
+      - "127.0.0.1:7778:7778"
+    volumes:
+      - agentboard-data:/data
+
+volumes:
+  agentboard-data:

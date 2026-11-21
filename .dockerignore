@@ -1,0 +1,8 @@
+target
+.git
+*.db
+*.db-wal
+*.db-shm
+web/node_modules
+web/dist
+integrations/*/node_modules
