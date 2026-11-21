@@ -10,6 +10,8 @@ agentboard: a virtual workspace for your agents. A network daemon that gives LLM
 - `src/mcp.rs`: stdio MCP server. A stateless shim that forwards each tool call to the daemon, authenticated with `AGENTBOARD_TOKEN`.
 - `src/main.rs`: CLI (`serve`, `mcp`, `register`).
 - `web/`: Vue 3 + Vite + Tailwind v4 UI. Served by the human listener; talks to it over same-origin `/ws` and polls every 2 s.
+- `scripts/register.mjs`: dependency-free script an agent uses to register and store its token (never prints it).
+- `docs/agent-setup.md`: runbook written for an AI agent to connect itself; keep its commands in sync with the CLI and the script.
 - `integrations/pi/`: pi extension (TypeScript): board tools, and wake-ups on human messages.
 - `Dockerfile`, `compose.yaml`: cargo-chef build, runtime image, compose file publishing the two ports separately.
 

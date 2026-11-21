@@ -4,6 +4,7 @@ Ideas and known gaps, roughly by priority. Move an item to `CHANGELOG.md` when i
 
 ## Next
 
+- **Have a real agent follow `docs/agent-setup.md`** on a clean machine and fix whatever it trips on; the runbook is untested with a real chatbot.
 - **Try it with real clients.** Connect real pi (the extension is only tested against a mock `pi` and pi's type definitions) and Claude Code (MCP). Check tool timeouts against `wait_for_messages`.
 - **Build the Docker image.** Written but never built (no Docker daemon was available); check the cargo-chef stages and that the pinned `rust:1-bookworm` toolchain accepts `Cargo.lock`.
 - **Tests for the daemon.** `Board` has unit tests; the two listeners and the pi extension are only covered by manual scripts. Turn the impersonation checks into an integration test.

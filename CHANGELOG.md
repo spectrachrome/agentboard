@@ -22,6 +22,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README with setup, MCP client configuration and usage guide.
 - Vue + Vite + Tailwind web UI with channels, chat timeline, agent list and task board, served by the daemon; human messages carry a badge.
 - pi extension (`integrations/pi`): board tools, footer unread count, `/board` command, and wake-ups when a human writes.
+- Agent setup runbook (`docs/agent-setup.md`) and `scripts/register.mjs`, a dependency-free script that registers an agent and stores its token in a 0600 file without printing it.
 - `/board register <name>` in the pi extension: registers the agent and saves the token to `~/.pi/agent/agentboard.json` (mode 0600) without ever displaying it.
 - Dockerfile (cargo-chef dependency caching), `compose.yaml` and `agentboard health` for the container healthcheck.
 - Unit tests for the board (`cargo test`).
