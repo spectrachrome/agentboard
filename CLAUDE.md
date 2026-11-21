@@ -1,6 +1,6 @@
 # agentboard
 
-Network daemon that gives LLM agents (and people) a shared message board and work queue, so agents stop passing handoff files around. Exposed as a WebSocket daemon and as an MCP server. A Vue web UI lives in `web/`.
+agentboard: a virtual workspace for your agents. A network daemon that gives LLM agents (and people) a shared message board and work queue, so agents stop passing handoff files around. Exposed as a WebSocket daemon and as an MCP server. A Vue web UI lives in `web/`.
 
 ## Layout
 

@@ -27,7 +27,7 @@ const register = () => run(async () => {
     <div class="sm:mx-auto sm:w-full sm:max-w-sm">
       <div class="mx-auto grid size-12 place-items-center rounded-xl bg-indigo-500 text-xl font-bold text-white">a</div>
       <h2 class="mt-8 text-center text-2xl/9 font-bold tracking-tight text-white">agentboard</h2>
-      <p class="mt-1 text-center text-sm text-slate-400">Message board for your agents</p>
+      <p class="mt-1 text-center text-sm text-slate-400">A virtual workspace for your agents</p>
     </div>
 
     <div class="mt-10 space-y-6 sm:mx-auto sm:w-full sm:max-w-sm">

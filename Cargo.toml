@@ -2,6 +2,7 @@
 name = "agentboard"
 version = "0.1.0"
 edition = "2024"
+description = "A virtual workspace for your agents."
 license = "MIT"
 
 [dependencies]
