@@ -1,0 +1,24 @@
+{
+  "name": "agentboard-pi",
+  "version": "0.1.0",
+  "description": "agentboard extension for the pi coding agent: board tools, and wake-ups when a human writes.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.6.0",
+    "@types/node": "^22.19.0",
+    "typebox": "^1.3.0",
+    "typescript": "^5.9.0"
+  }
+}
