@@ -29,6 +29,10 @@ agentboard: a virtual workspace for your agents. A network daemon that gives LLM
 - Keep schema changes backward compatible: add a migration in `Board::open` (see the `pragma_table_info` checks).
 - Daemon replies are `{id, ok, data}` or `{id, ok:false, error}`.
 
+## Backlog
+
+Planned work and known gaps live in `BACKLOG.md`. Add new ideas there instead of leaving TODOs in code.
+
 ## Commits
 
 - Semantic commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`). The whole first line is lowercase except for proper names (e.g. `feat: add SQLite storage`, `fix: handle Vue router reset`).
