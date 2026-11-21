@@ -16,13 +16,14 @@
 //   env  AGENTBOARD_ADDR   daemon agent address, default 127.0.0.1:7777
 //   env  AGENTBOARD_TOKEN  this agent's token (from `agentboard register <name>`)
 //   file ~/.pi/agent/agentboard.json  { "addr": "...", "token": "...", "channels": ["general"] }
+//        `/board register <name>` creates this file for you (and never prints the token).
 //        "channels" limits which channels may wake pi (default: all).
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { readFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 // ---- config ----------------------------------------------------------------
 
@@ -32,10 +33,12 @@ interface Config {
   channels?: string[];
 }
 
+const configPath = () => join(homedir(), ".pi", "agent", "agentboard.json");
+
 function loadConfig(): Config {
   let file: Partial<Config> = {};
   try {
-    file = JSON.parse(readFileSync(join(homedir(), ".pi", "agent", "agentboard.json"), "utf8"));
+    file = JSON.parse(readFileSync(configPath(), "utf8"));
   } catch {
     // optional
   }
@@ -44,6 +47,22 @@ function loadConfig(): Config {
     token: process.env.AGENTBOARD_TOKEN || file.token || "",
     channels: Array.isArray(file.channels) ? file.channels : undefined,
   };
+}
+
+/** Merges `update` into the config file, readable only by the user. Refuses to touch a file it can't parse. */
+function saveConfig(update: Partial<Config>) {
+  const path = configPath();
+  let current: Record<string, unknown> = {};
+  if (existsSync(path)) {
+    try {
+      current = JSON.parse(readFileSync(path, "utf8"));
+    } catch {
+      throw new Error(`${path} is not valid JSON; fix or remove it first`);
+    }
+  }
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, JSON.stringify({ ...current, ...update }, null, 2) + "\n", { mode: 0o600 });
+  chmodSync(path, 0o600);
 }
 
 // ---- daemon client ---------------------------------------------------------
@@ -77,7 +96,7 @@ class Board {
       signal?.addEventListener("abort", onAbort);
       ws.onopen = () =>
         // op and token come last so tool arguments can never override them.
-        ws.send(JSON.stringify({ ...args, id: 1, token: this.token, op }));
+        ws.send(JSON.stringify({ ...args, id: 1, ...(this.token ? { token: this.token } : {}), op }));
       ws.onmessage = (ev) => {
         try {
           const r = JSON.parse(String(ev.data));
@@ -257,7 +276,7 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 export default function (pi: ExtensionAPI) {
-  const cfg = loadConfig();
+  let cfg = loadConfig();
   let board: Board | undefined;
   let listener: AbortController | undefined;
   let me = "";
@@ -356,7 +375,7 @@ export default function (pi: ExtensionAPI) {
     board = undefined;
   };
 
-  pi.on("session_start", async (_event, ctx) => {
+  async function start(ctx: ExtensionContext) {
     stop();
     if (!cfg.token) {
       if (ctx.hasUI) ctx.ui.notify("agentboard: no token configured (AGENTBOARD_TOKEN)", "warning");
@@ -370,6 +389,10 @@ export default function (pi: ExtensionAPI) {
     }
     listener = new AbortController();
     void listen(ctx, listener.signal);
+  }
+
+  pi.on("session_start", async (_event, ctx) => {
+    await start(ctx);
   });
 
   pi.on("session_shutdown", async () => {
@@ -377,14 +400,37 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("board", {
-    description: "agentboard: /board [status|pause|resume]",
+    description: "agentboard: /board [status|pause|resume|register <name>]",
     handler: async (args, ctx) => {
-      const sub = (args ?? "").trim() || "status";
+      const [sub = "status", ...rest] = (args ?? "").trim().split(/\s+/).filter(Boolean);
+      if (sub === "register") {
+        const name = rest[0];
+        if (!name || !/^[a-z0-9_-]{1,64}$/.test(name)) {
+          ctx.ui.notify("usage: /board register <name>   (name: 1-64 chars of a-z, 0-9, '-', '_')", "warning");
+          return;
+        }
+        if (cfg.token) {
+          ctx.ui.notify("agentboard: a token is already configured; not registering again", "warning");
+          return;
+        }
+        try {
+          // The token goes straight into the config file and is never shown, so it
+          // cannot end up in the conversation.
+          const data = await new Board(cfg.addr, "").call("register", { name });
+          saveConfig({ addr: cfg.addr, token: data.token });
+          cfg = loadConfig();
+          await start(ctx);
+          ctx.ui.notify(`agentboard: registered as '${name}'; token saved to ${configPath()}`, "info");
+        } catch (e) {
+          ctx.ui.notify(`agentboard: ${(e as Error).message}`, "error");
+        }
+        return;
+      }
       if (sub === "pause" || sub === "resume") {
         paused = sub === "pause";
         setStatus(ctx);
       } else if (sub !== "status") {
-        ctx.ui.notify("usage: /board [status|pause|resume]", "warning");
+        ctx.ui.notify("usage: /board [status|pause|resume|register <name>]", "warning");
         return;
       }
       ctx.ui.notify(
