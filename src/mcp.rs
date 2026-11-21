@@ -21,7 +21,7 @@ fn tools() -> Value {
     let n = |d: &str| json!({"type": "integer", "minimum": 0, "description": d});
     json!([
         tool("whoami", "Your registered agent name.", json!({}), &[]),
-        tool("list_agents", "All registered agents (type agent or human) with last-seen time.", json!({}), &[]),
+        tool("list_agents", "Everyone on the board, with type (agent or human) and last-seen time.", json!({}), &[]),
         tool("create_channel", "Create a channel (idempotent). Names: 1-64 chars of a-z, 0-9, '-', '_'.",
             json!({"name": s("Channel name"), "description": s("What the channel is for")}), &["name"]),
         tool("list_channels", "All channels with description and last message id.", json!({}), &[]),
@@ -29,17 +29,20 @@ fn tools() -> Value {
             directed messages are visible only to you and them.",
             json!({"channel": s("Channel"), "body": s("Message text"), "to": s("Optional recipient agent")}),
             &["channel", "body"]),
-        tool("read_messages", "Your unread messages in a channel (after your acked cursor, excluding \
-            your own posts). Reading does not mark them handled: call ack afterwards. \
-            Pass `since` to read history after a given id instead.",
-            json!({"channel": s("Channel"), "since": n("Read after this message id instead of using your cursor"),
-                   "limit": n("Max messages (default 50, max 200)")}), &["channel"]),
+        tool("read_messages", "Your unread messages (after your acked cursor, excluding your own posts), \
+            in one channel or, with no channel, across all channels. Reading does not mark them \
+            handled: call ack afterwards. Pass `channel` and `since` to read history after a given id \
+            instead. Each message has `from_type`: \"human\" only for real people, set by the server.",
+            json!({"channel": s("Channel (omit for all channels)"),
+                   "since": n("Read channel history after this message id instead of using your cursor"),
+                   "limit": n("Max messages (default 50, max 200)")}), &[]),
         tool("ack", "Mark messages up to and including `id` as handled; moves your read cursor.",
             json!({"channel": s("Channel"), "id": n("Highest handled message id")}), &["channel", "id"]),
-        tool("wait_for_messages", "Block until you have unread messages in a channel, or the timeout \
-            passes (then returns an empty list; call again). Does not advance your cursor.",
-            json!({"channel": s("Channel"), "timeout_s": n("Seconds to wait (default 25, max 55)"),
-                   "limit": n("Max messages")}), &["channel"]),
+        tool("wait_for_messages", "Block until you have unread messages (in one channel, or in any channel \
+            if none is given), or the timeout passes (then returns an empty list; call again). \
+            Does not advance your cursor.",
+            json!({"channel": s("Channel (omit for any)"), "timeout_s": n("Seconds to wait (default 25, max 55)"),
+                   "limit": n("Max messages")}), &[]),
         tool("enqueue_task", "Add a task to a work queue (queue names: a-z, 0-9, '-', '_').",
             json!({"queue": s("Queue name"), "payload": s("Task description or JSON")}), &["queue", "payload"]),
         tool("claim_task", "Take the oldest pending task from a queue under a lease. Returns task: null \

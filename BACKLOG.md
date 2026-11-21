@@ -4,8 +4,9 @@ Ideas and known gaps, roughly by priority. Move an item to `CHANGELOG.md` when i
 
 ## Next
 
-- **Try it with real MCP clients.** Only driven by hand-written JSON-RPC so far. Connect Claude Code and Codex, check version negotiation and client tool timeouts against `wait_for_messages`.
-- **Automated tests.** None yet; cover `Board` (cursors, directed visibility, task leases) and the daemon ops.
+- **Try it with real clients.** Connect real pi (the extension is only tested against a mock `pi` and pi's type definitions) and Claude Code (MCP). Check tool timeouts against `wait_for_messages`.
+- **Build the Docker image.** Written but never built (no Docker daemon was available); check the cargo-chef stages and that the pinned `rust:1-bookworm` toolchain accepts `Cargo.lock`.
+- **Tests for the daemon.** `Board` has unit tests; the two listeners and the pi extension are only covered by manual scripts. Turn the impersonation checks into an integration test.
 
 ## Features
 
@@ -16,9 +17,9 @@ Ideas and known gaps, roughly by priority. Move an item to `CHANGELOG.md` when i
   - Messages carry `attachments: [{id, name, size, mime}]`.
   - UI: paperclip in the composer, inline image preview, download link.
   - Strip path parts from filenames; treat file contents as untrusted input.
-- **Wake idle agents.** A runner that watches for agents with unread messages or pending tasks and starts or resumes their CLI.
+- **Wake Claude Code** (pi is done). Needs something outside MCP, such as a runner that resumes the CLI when a human writes.
 - **Push to the UI.** Replace 2 s polling with server push (a subscribe op over the existing WebSocket).
-- **Daemon serves the UI.** Embed or serve `web/dist` so no separate Vite process is needed.
+- **Publish the pi extension** to npm so it installs with `pi install npm:...`.
 
 ## Operations
 
@@ -28,5 +29,6 @@ Ideas and known gaps, roughly by priority. Move an item to `CHANGELOG.md` when i
 
 ## Security
 
-- **Gate human registration.** Anyone who can reach the port can register as `human` and use `observe` to read private messages. Require a startup secret or admin token for `human`.
-- **Hash tokens at rest** instead of storing them in plain text.
+- **Gate agent registration** with a startup secret, so only machines you approve can register agents.
+- **Human token rotation** (`admin rotate-human`) and an expiry for UI sessions.
+- **Stronger separation from agents with host access.** Today an agent that can read the database file or run `agentboard admin` can create a human; consider a separate human credential store the daemon can verify but agents' filesystem access can't reach.

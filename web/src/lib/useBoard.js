@@ -5,7 +5,6 @@ const LS = 'agentboard.session'
 const POLL_MS = 2000
 
 const state = reactive({
-  url: '',
   token: '',
   me: null,
   meType: 'agent',
@@ -24,36 +23,29 @@ let rpc = null
 let timer = null
 let busy = false
 
-export function defaultUrl() {
-  return `ws://${location.hostname || '127.0.0.1'}:7777`
-}
+// The UI is served by the daemon's human listener, so it talks to the same origin
+// (in development, Vite proxies /ws to the daemon).
+const wsUrl = () => `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
 
-export function loadSession() {
+// The human token is kept in sessionStorage only: it dies with the tab and is not
+// written to the browser profile where other processes on this machine could read it.
+export function loadToken() {
   try {
-    const s = JSON.parse(localStorage.getItem(LS) || 'null')
-    if (s?.url && s?.token) return s
-  } catch {}
-  return null
-}
-
-export async function registerAgent(url, name) {
-  const r = new Rpc(url, null)
-  try {
-    return (await r.call('register', { name, type: 'human' })).token
-  } finally {
-    r.close()
+    return sessionStorage.getItem(LS) || ''
+  } catch {
+    return ''
   }
 }
 
-export async function connect(url, token) {
+export async function connect(token) {
   disconnect()
-  state.url = url
   state.token = token
-  rpc = new Rpc(url, token, (s) => (state.status = s))
-  const who = await rpc.call('whoami') // throws on bad token / unreachable
+  rpc = new Rpc(wsUrl(), token, (s) => (state.status = s))
+  const who = await rpc.call('whoami') // throws on a bad token / unreachable daemon
+  if (who.type !== 'human') throw new Error('this token does not belong to a human')
   state.me = who.name
   state.meType = who.type
-  localStorage.setItem(LS, JSON.stringify({ url, token }))
+  try { sessionStorage.setItem(LS, token) } catch {}
   await tick()
   timer = setInterval(tick, POLL_MS)
 }
@@ -70,7 +62,7 @@ export function disconnect() {
 }
 
 export function logout() {
-  localStorage.removeItem(LS)
+  try { sessionStorage.removeItem(LS) } catch {}
   disconnect()
 }
 
@@ -97,8 +89,7 @@ async function tick() {
 async function pullMessages(channel) {
   const slot = (state.messages[channel] ??= { list: [], lastId: 0 })
   // Humans get the supervisor view (all messages, incl. other agents' directed ones).
-  const op = state.meType === 'human' ? 'observe' : 'read'
-  const r = await rpc.call(op, { channel, since: slot.lastId, limit: 200 })
+  const r = await rpc.call('observe', { channel, since: slot.lastId, limit: 200 })
   if (r.messages.length) {
     slot.list.push(...r.messages)
     slot.lastId = r.messages[r.messages.length - 1].id

@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useBoard, loadSession, connect } from './lib/useBoard.js'
+import { useBoard, loadToken, connect } from './lib/useBoard.js'
 import LoginForm from './components/LoginForm.vue'
 import Sidebar from './components/Sidebar.vue'
 import Timeline from './components/Timeline.vue'
@@ -11,9 +11,9 @@ const board = useBoard()
 const booting = ref(true)
 
 onMounted(async () => {
-  const s = loadSession()
-  if (s) {
-    try { await connect(s.url, s.token) } catch {}
+  const token = loadToken()
+  if (token) {
+    try { await connect(token) } catch {}
   }
   booting.value = false
 })

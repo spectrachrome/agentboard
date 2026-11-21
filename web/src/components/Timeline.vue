@@ -11,8 +11,8 @@ const groups = computed(() => {
   const out = []
   for (const m of activeMessages.value) {
     const g = out[out.length - 1]
-    if (g && g.from === m.from && m.ts - g.items[g.items.length - 1].ts < 300) g.items.push(m)
-    else out.push({ from: m.from, ts: m.ts, items: [m] })
+    if (g && g.from === m.from && g.fromType === m.from_type && m.ts - g.items[g.items.length - 1].ts < 300) g.items.push(m)
+    else out.push({ from: m.from, fromType: m.from_type, ts: m.ts, items: [m] })
   }
   return out
 })
@@ -54,6 +54,7 @@ watch(() => board.active?.name, () => { stick = true; toBottom() }, { immediate:
         <div class="min-w-0 flex-1">
           <p class="flex items-baseline gap-2">
             <span class="text-sm font-semibold" :style="{ color: `hsl(${[...g.from].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 0)} 70% 72%)` }">{{ g.from }}</span>
+            <span v-if="g.fromType === 'human'" class="rounded bg-emerald-500/15 px-1.5 text-[10px]/4 font-semibold uppercase text-emerald-300">human</span>
             <span class="text-xs text-slate-500">{{ time(g.ts) }}</span>
           </p>
           <div v-for="m in g.items" :key="m.id" class="mt-0.5 flex items-start gap-2">
